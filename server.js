@@ -31,11 +31,12 @@ const io = new Server(server, {
   },
 });
 
-const DB = process.env.DATABASE.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
-
+const DB = process.env.DATABASE_PORT
+// .replace(
+//   "<PASSWORD>",
+//   process.env.DATABASE_PASSWORD
+// );
+console.log("db",DB)
 mongoose
   .connect(DB, {
     // useNewUrlParser: true, // The underlying MongoDB driver has deprecated their current connection string parser. Because this is a major change, they added the useNewUrlParser flag to allow users to fall back to the old parser if they find a bug in the new parser.
@@ -44,8 +45,8 @@ mongoose
     // useUnifiedTopology: true, // Set to true to opt in to using the MongoDB driver's new connection management engine. You should set this option to true , except for the unlikely case that it prevents you from maintaining a stable connection.
   })
   .then((con) => {
-    console.log("DB Connection successful");
-  });
+    console.log("DB Connection successful",con);
+  }).catch((err)=>console.log("errr",err));
 
 const port = process.env.PORT || 8000;
 
