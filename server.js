@@ -45,7 +45,7 @@ mongoose
     // useUnifiedTopology: true, // Set to true to opt in to using the MongoDB driver's new connection management engine. You should set this option to true , except for the unlikely case that it prevents you from maintaining a stable connection.
   })
   .then((con) => {
-    console.log("DB Connection successful",con);
+    console.log("DB Connection successful");
   }).catch((err)=>console.log("errr",err));
 
 const port = process.env.PORT || 8000;
@@ -64,17 +64,19 @@ io.on("connection", async (socket) => {
 
   if (user_id != null && Boolean(user_id)) {
     try {
-      User.findByIdAndUpdate(user_id, {
+      const data= await User.findByIdAndUpdate(user_id, {
         socket_id: socket.id,
         status: "Online",
       });
+      console.log("data",data)
     } catch (e) {
-      console.log(e);
+      console.log("connection",e);
     }
   }
 
   // We can write our socket event listeners in here...
   socket.on("friend_request", async (data) => {
+    console.log("friend_request",data)
     const to = await User.findById(data.to).select("socket_id");
     const from = await User.findById(data.from).select("socket_id");
 
@@ -93,6 +95,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("accept_request", async (data) => {
+    console.log("accept_request",data)
     // accept friend request => add ref of each other in friends array
     console.log(data);
     const request_doc = await FriendRequest.findById(data.request_id);
@@ -123,6 +126,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("get_direct_conversations", async ({ user_id }, callback) => {
+    console.log("get_direct_conversations")
     const existing_conversations = await OneToOneMessage.find({
       participants: { $all: [user_id] },
     }).populate("participants", "firstName lastName avatar _id email status");
@@ -135,6 +139,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("start_conversation", async (data) => {
+    console.log("start_conversation",data)
     // data: {to: from:}
 
     const { to, from } = data;
@@ -169,6 +174,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("get_messages", async (data, callback) => {
+    console.log("get_messages",data)
     try {
       const { messages } = await OneToOneMessage.findById(
         data.conversation_id
@@ -181,6 +187,7 @@ io.on("connection", async (socket) => {
 
   // Handle incoming text/link messages
   socket.on("text_message", async (data) => {
+    console.log("text_message",data)
     console.log("Received message:", data);
 
     // data: {to, from, text}
@@ -222,6 +229,7 @@ io.on("connection", async (socket) => {
 
   // handle Media/Document Message
   socket.on("file_message", (data) => {
+    console.log("file_message",data)
     console.log("Received message:", data);
 
     // data: {to, from, text, file}
@@ -249,6 +257,7 @@ io.on("connection", async (socket) => {
 
   // handle start_audio_call event
   socket.on("start_audio_call", async (data) => {
+    console.log("start_audio_call",data)
     const { from, to, roomID } = data;
 
     const to_user = await User.findById(to);
@@ -268,6 +277,7 @@ io.on("connection", async (socket) => {
 
   // handle audio_call_not_picked
   socket.on("audio_call_not_picked", async (data) => {
+    console.log("audio_call_not_picked",data)
     console.log(data);
     // find and update call record
     const { to, from } = data;
@@ -290,6 +300,7 @@ io.on("connection", async (socket) => {
 
   // handle audio_call_accepted
   socket.on("audio_call_accepted", async (data) => {
+    console.log("audio_call_accepted",data)
     const { to, from } = data;
 
     const from_user = await User.findById(from);
@@ -311,6 +322,7 @@ io.on("connection", async (socket) => {
 
   // handle audio_call_denied
   socket.on("audio_call_denied", async (data) => {
+    console.log("audio_call_denied",data)
     // find and update call record
     const { to, from } = data;
 
@@ -332,6 +344,7 @@ io.on("connection", async (socket) => {
 
   // handle user_is_busy_audio_call
   socket.on("user_is_busy_audio_call", async (data) => {
+    console.log("user_is_busy_audio_call",data)
     const { to, from } = data;
     // find and update call record
     await AudioCall.findOneAndUpdate(
@@ -353,6 +366,7 @@ io.on("connection", async (socket) => {
 
   // handle start_video_call event
   socket.on("start_video_call", async (data) => {
+    console.log("start_video_call",data)
     const { from, to, roomID } = data;
 
     console.log(data);
@@ -374,6 +388,7 @@ io.on("connection", async (socket) => {
 
   // handle video_call_not_picked
   socket.on("video_call_not_picked", async (data) => {
+    console.log("video_call_not_picked",data)
     console.log(data);
     // find and update call record
     const { to, from } = data;
@@ -396,6 +411,7 @@ io.on("connection", async (socket) => {
 
   // handle video_call_accepted
   socket.on("video_call_accepted", async (data) => {
+    console.log("video_call_accepted",data)
     const { to, from } = data;
 
     const from_user = await User.findById(from);
@@ -417,6 +433,7 @@ io.on("connection", async (socket) => {
 
   // handle video_call_denied
   socket.on("video_call_denied", async (data) => {
+    console.log("video_call_denied",data)
     // find and update call record
     const { to, from } = data;
 
@@ -438,6 +455,7 @@ io.on("connection", async (socket) => {
 
   // handle user_is_busy_video_call
   socket.on("user_is_busy_video_call", async (data) => {
+    console.log("user_is_busy_video_call",data)
     const { to, from } = data;
     // find and update call record
     await VideoCall.findOneAndUpdate(
@@ -458,6 +476,7 @@ io.on("connection", async (socket) => {
   // -------------- HANDLE SOCKET DISCONNECTION ----------------- //
 
   socket.on("end", async (data) => {
+    console.log("end",data)
     // Find user by ID and set status as offline
 
     if (data.user_id) {

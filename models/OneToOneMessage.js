@@ -31,8 +31,13 @@ const oneToOneMessageSchema = new mongoose.Schema({
       file: {
         type: String,
       },
+      seen: {
+        type: Boolean,default:false
+      },
     },
   ],
+},{
+  timestamps:true
 });
 
 const OneToOneMessage = new mongoose.model(
